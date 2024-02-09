@@ -1,0 +1,34 @@
+**Migrating MySql from EC2 to RDS in AWS**
+
+Previously when databases were created in AWS, they were placed on the EC2 instances. Later, as AWS came up with RDS, a dedicated service for databases, it is preferable to maintain databases on RDS rather than on EC2’s anymore. So, all the new databases which are created now in AWS are placed in RDS.
+
+So, what about the databases which are on EC2’s?
+They should be migrated to RDS. Simple isn’t it.
+
+Based on the scenarios, the migration plan can vary.
+
+Scenario – You have your active production database on EC2 and you want to migrate it to RDS.
+
+Steps –
+
+Take a snapshot/backup of the database on the EC2. This can be achieved used ‘percona’. Refer –
+
+Send the backup to S3, an AWS storage service.
+Now, you can ‘Restore a DB‘ to RDS from the backup stored in S3, using the AWS RDS console/CLI. Refer –
+https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/MySQL.Procedural.Importing.html
+Once the DB is restored to RDS. Login to the DB on RDS and make it a slave to the DB on EC2 by using the binlogs you stored in STEP 2.
+Once the RDS is a slave to the DB on EC2, check if the lag time is ‘0’.
+So, now both the DB’s are in sync.
+Ask your clients for a maintenance window where the application will be temporarily down.
+In that maintenance window -Check for ‘0’ lag time, Stop DB on EC2 and turn the traffic to the DB on RDS.
+Once your application is UP, all the traffic is now pointed to RDS.
+Confirm that the new DB is working properly as planned and shut down the DB on EC2.
+Important note –
+
+Don’t shut down the DB on EC2 until you perform all the tests on RDS.
+Do this for a non-prod DB and then for a prod DB to eliminate risks.
+Choose the RDS parameters carefully based on the DB parameters on EC2.
+There can be different strategies that can be followed to do the migration based on the specific scenario. One piece of advice- ‘Be careful when playing with DataBases else you would have a sleepless weekend 😛‘.
+
+
+
